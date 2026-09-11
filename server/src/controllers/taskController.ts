@@ -6,7 +6,7 @@ import { Role, TaskStatus, TaskPriority } from '@prisma/client';
 export async function getTasks(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const user = req.user!;
-    const { status, priority, projectId, assignedToId, isOverdue, dueDateFrom, dueDateTo } = req.query;
+    const { search, status, priority, projectId, assignedToId, isOverdue, dueDateFrom, dueDateTo } = req.query;
 
     const where: any = {};
 
@@ -23,6 +23,21 @@ export async function getTasks(req: Request, res: Response, next: NextFunction):
     }
 
     // 2. Query param filters
+    if (search && typeof search === 'string' && search.trim() !== '') {
+      const term = search.trim();
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { title: { contains: term, mode: 'insensitive' } },
+            { description: { contains: term, mode: 'insensitive' } },
+            { project: { name: { contains: term, mode: 'insensitive' } } },
+            { assignedTo: { name: { contains: term, mode: 'insensitive' } } },
+          ],
+        },
+      ];
+    }
+
     if (status && Object.values(TaskStatus).includes(status as TaskStatus)) {
       where.status = status as TaskStatus;
     }

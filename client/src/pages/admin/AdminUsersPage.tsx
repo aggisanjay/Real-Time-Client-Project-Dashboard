@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { apiFetch } from '../../services/api.js';
 import { socketService } from '../../services/socket.js';
 import { User, OnlineUser, Role } from '../../types/index.js';
@@ -6,11 +7,22 @@ import { Users, Shield, Circle, RefreshCw, CheckCircle } from 'lucide-react';
 import { getAvatarColor } from '../../lib/avatar.js';
 
 export const AdminUsersPage: React.FC = () => {
+  const { searchTerm = '' } = useOutletContext<{ searchTerm?: string }>() || {};
   const [users, setUsers] = useState<User[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const filteredUsers = users.filter((u) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      u.name.toLowerCase().includes(term) ||
+      u.email.toLowerCase().includes(term) ||
+      u.role.toLowerCase().includes(term)
+    );
+  });
 
   const fetchData = async () => {
     try {
@@ -123,14 +135,14 @@ export const AdminUsersPage: React.FC = () => {
                     Loading team directory...
                   </td>
                 </tr>
-              ) : users.length === 0 ? (
+              ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                    No team members found.
+                    {searchTerm ? `No team members matching "${searchTerm}".` : 'No team members found.'}
                   </td>
                 </tr>
               ) : (
-                users.map((u) => {
+                filteredUsers.map((u) => {
                   const online = isUserOnline(u.id);
 
                   return (
@@ -153,20 +165,21 @@ export const AdminUsersPage: React.FC = () => {
                       <td className="px-5 py-4 text-muted-foreground">{u.email}</td>
 
                       <td className="px-5 py-4">
-                        {online ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-0.5 text-[10px] font-bold text-success border border-success/30">
-                            <Circle className="h-2 w-2 fill-success text-success" /> Active Online
+                        <div className="flex items-center gap-1.5">
+                          <Circle
+                            className={`h-2.5 w-2.5 fill-current ${
+                              online ? 'text-success' : 'text-muted-foreground/40'
+                            }`}
+                          />
+                          <span className={`font-semibold ${online ? 'text-success' : 'text-muted-foreground'}`}>
+                            {online ? 'Online now' : 'Offline'}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                            <Circle className="h-2 w-2 fill-muted-foreground/40 text-transparent" /> Offline
-                          </span>
-                        )}
+                        </div>
                       </td>
 
                       <td className="px-5 py-4">
-                        <span className="font-semibold text-foreground">
-                          {u._count?.assignedTasks || 0}
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                          {u._count?.assignedTasks || 0} tasks
                         </span>
                       </td>
 

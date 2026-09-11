@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useOutletContext } from 'react-router-dom';
 import { apiFetch } from '../../services/api.js';
 import { Task, Project, User } from '../../types/index.js';
 import { KanbanBoard } from '../../components/shared/KanbanBoard.js';
@@ -9,6 +9,7 @@ import { Plus } from 'lucide-react';
 
 export const PMTeamBoardPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { searchTerm = '' } = useOutletContext<{ searchTerm?: string }>() || {};
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [developers, setDevelopers] = useState<User[]>([]);
@@ -117,17 +118,30 @@ export const PMTeamBoardPage: React.FC = () => {
       <FilterBar />
 
       {/* Kanban Board */}
-      {isLoading ? (
-        <div className="flex h-80 items-center justify-center rounded-2xl border border-border/80 bg-card/40">
-          <p className="text-xs text-muted-foreground animate-pulse">Loading team tasks...</p>
-        </div>
-      ) : (
-        <KanbanBoard
-          tasks={tasks}
-          onTaskClick={(t) => setSelectedTask(t)}
-          onTasksChange={(updated) => setTasks(updated)}
-        />
-      )}
+      {(() => {
+        const filteredTasks = tasks.filter((t) => {
+          if (!searchTerm.trim()) return true;
+          const term = searchTerm.toLowerCase();
+          return (
+            t.title.toLowerCase().includes(term) ||
+            t.description?.toLowerCase().includes(term) ||
+            t.project?.name?.toLowerCase().includes(term) ||
+            t.assignedTo?.name?.toLowerCase().includes(term)
+          );
+        });
+
+        return isLoading ? (
+          <div className="flex h-80 items-center justify-center rounded-2xl border border-border/80 bg-card/40">
+            <p className="text-xs text-muted-foreground animate-pulse">Loading team tasks...</p>
+          </div>
+        ) : (
+          <KanbanBoard
+            tasks={filteredTasks}
+            onTaskClick={(t) => setSelectedTask(t)}
+            onTasksChange={(updated) => setTasks(updated)}
+          />
+        );
+      })()}
 
       {/* Task Detail Modal */}
       <TaskDetailModal

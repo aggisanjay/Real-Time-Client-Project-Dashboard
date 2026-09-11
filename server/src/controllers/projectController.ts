@@ -5,6 +5,7 @@ import { Role } from '@prisma/client';
 export async function getProjects(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const user = req.user!;
+    const { search } = req.query;
     let whereClause: any = {};
 
     if (user.role === Role.ADMIN) {
@@ -20,6 +21,19 @@ export async function getProjects(req: Request, res: Response, next: NextFunctio
           },
         },
       };
+    }
+
+    if (search && typeof search === 'string' && search.trim() !== '') {
+      const term = search.trim();
+      whereClause.AND = [
+        ...(whereClause.AND || []),
+        {
+          OR: [
+            { name: { contains: term, mode: 'insensitive' } },
+            { client: { name: { contains: term, mode: 'insensitive' } } },
+          ],
+        },
+      ];
     }
 
     const projects = await prisma.project.findMany({

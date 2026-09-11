@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('agency_flow_theme') as Theme;
-    return saved || 'dark'; // Default to dark premium navy mode
+    return saved || 'light'; // Default to white (light) mode
   });
 
   useEffect(() => {

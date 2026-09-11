@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useOutletContext } from 'react-router-dom';
 import { apiFetch } from '../../services/api.js';
 import { Task } from '../../types/index.js';
 import { KanbanBoard } from '../../components/shared/KanbanBoard.js';
@@ -10,6 +10,7 @@ import { Terminal, CheckSquare } from 'lucide-react';
 
 export const DevTasksPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { searchTerm = '' } = useOutletContext<{ searchTerm?: string }>() || {};
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -33,6 +34,16 @@ export const DevTasksPage: React.FC = () => {
     fetchTasks();
   }, [searchParams]);
 
+  const filteredTasks = tasks.filter((t) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      t.title.toLowerCase().includes(term) ||
+      t.description?.toLowerCase().includes(term) ||
+      t.project?.name?.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -43,7 +54,7 @@ export const DevTasksPage: React.FC = () => {
               My Assigned Tasks
             </h1>
             <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">
-              {tasks.length} Active
+              {filteredTasks.length} Active
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -62,7 +73,7 @@ export const DevTasksPage: React.FC = () => {
         </div>
       ) : (
         <KanbanBoard
-          tasks={tasks}
+          tasks={filteredTasks}
           onTaskClick={(t) => setSelectedTask(t)}
           onTasksChange={(updated) => setTasks(updated)}
         />

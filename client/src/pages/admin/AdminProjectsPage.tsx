@@ -1,14 +1,26 @@
 import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { apiFetch } from '../../services/api.js';
 import { Project, Client, User } from '../../types/index.js';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog.js';
 import { Plus, FolderKanban, Trash2, Edit3, Building2, User as UserIcon } from 'lucide-react';
 
 export const AdminProjectsPage: React.FC = () => {
+  const { searchTerm = '' } = useOutletContext<{ searchTerm?: string }>() || {};
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [managers, setManagers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const filteredProjects = projects.filter((p) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(term) ||
+      p.client?.name?.toLowerCase().includes(term) ||
+      p.manager?.name?.toLowerCase().includes(term)
+    );
+  });
 
   // Modal states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -150,14 +162,14 @@ export const AdminProjectsPage: React.FC = () => {
                     Loading projects...
                   </td>
                 </tr>
-              ) : projects.length === 0 ? (
+              ) : filteredProjects.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                    No projects found.
+                    {searchTerm ? `No projects matching "${searchTerm}".` : 'No projects found.'}
                   </td>
                 </tr>
               ) : (
-                projects.map((p) => (
+                filteredProjects.map((p) => (
                   <tr key={p.id} className="transition-colors hover:bg-secondary/30">
                     <td className="px-5 py-4 font-semibold text-foreground">
                       <div className="flex items-center gap-2">

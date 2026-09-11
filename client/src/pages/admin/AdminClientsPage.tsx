@@ -1,12 +1,23 @@
 import React, { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { apiFetch } from '../../services/api.js';
 import { Client } from '../../types/index.js';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog.js';
 import { Plus, Building2, Trash2, Edit3, Mail } from 'lucide-react';
 
 export const AdminClientsPage: React.FC = () => {
+  const { searchTerm = '' } = useOutletContext<{ searchTerm?: string }>() || {};
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const filteredClients = clients.filter((c) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(term) ||
+      c.contactInfo?.toLowerCase().includes(term)
+    );
+  });
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -131,14 +142,14 @@ export const AdminClientsPage: React.FC = () => {
                     Loading clients...
                   </td>
                 </tr>
-              ) : clients.length === 0 ? (
+              ) : filteredClients.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                    No clients found.
+                    {searchTerm ? `No clients matching "${searchTerm}".` : 'No clients found.'}
                   </td>
                 </tr>
               ) : (
-                clients.map((c) => (
+                filteredClients.map((c) => (
                   <tr key={c.id} className="transition-colors hover:bg-secondary/30">
                     <td className="px-5 py-4 font-semibold text-foreground">
                       <div className="flex items-center gap-2">

@@ -16,6 +16,7 @@ import taskRoutes from './routes/taskRoutes.js';
 import activityRoutes from './routes/activityRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import searchRoutes from './routes/searchRoutes.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -47,6 +48,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/search', searchRoutes);
 
 // 4. Central Error Handler
 app.use(errorHandler);
