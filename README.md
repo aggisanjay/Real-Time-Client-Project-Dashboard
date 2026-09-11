@@ -8,29 +8,11 @@
 
 ### Prerequisites
 - Node.js (v20+ or v24+) & npm (v10+)
-- PostgreSQL 16+ database (Docker or Cloud PostgreSQL such as Neon)
-
-### Option A: Docker Compose (Recommended)
-Launch PostgreSQL, the Express API, and the React Vite frontend with a single command:
-
-```bash
-# 1. Clone the repository
-git clone <repo-url>
-cd "Real-Time Client Project Dashboard"
-
-# 2. Configure environment
-cp .env.example .env
-
-# 3. Start containers
-docker compose up --build
-```
-- Frontend: `http://localhost:5173`
-- Backend API & WebSockets: `http://localhost:5000`
-- PostgreSQL: `localhost:5432`
+- PostgreSQL 16+ database (Local PostgreSQL or Cloud PostgreSQL such as Neon)
 
 ---
 
-### Option B: Local / Cloud PostgreSQL (e.g. Neon) Setup
+### Installation & Launch Guide
 
 ```bash
 # 1. Setup Backend
@@ -41,11 +23,15 @@ npx prisma db push      # Synchronize PostgreSQL schema
 npx tsx prisma/seed.ts  # Seed test users, projects, tasks, and activity logs
 npm run dev             # Starts Express + Socket.io + Cron on http://localhost:5000
 
-# 2. Setup Frontend (in a new terminal)
+# 2. Setup Frontend (in a separate terminal)
 cd ../client
+cp .env.example .env    # Verify VITE_API_URL and VITE_SOCKET_URL
 npm install
-npm run dev             # Starts Vite on http://localhost:5173
+npm run dev             # Starts Vite dev server on http://localhost:5173
 ```
+
+- **Frontend Application:** `http://localhost:5173`
+- **Backend API & WebSockets:** `http://localhost:5000`
 
 ---
 
@@ -153,5 +139,5 @@ npm test
 ---
 
 ## 7. Known Limitations
-- Background scheduler runs within the Express instance (`node-cron`). For horizontal scaling across multiple container replicas, an external scheduler or BullMQ with Redis locks would be recommended.
+- Background scheduler runs within the Express instance (`node-cron`). For horizontal scaling across multiple instances, an external scheduler or BullMQ with Redis locks would be recommended.
 - WebSockets currently operate on a single Node server instance. For multi-node clustering, the `@socket.io/redis-adapter` would be required.
