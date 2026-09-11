@@ -1,6 +1,6 @@
 # Real-Time Client Project Dashboard (AgencyFlow)
 
-> Full-stack enterprise internal tool for managing client projects, assigning/tracking tasks, and monitoring team activity in real time with server-enforced role-based access control (RBAC), mirroring the patterns of `Talent-Portal-production`.
+> Full-stack enterprise internal tool for managing client projects, assigning/tracking tasks, and monitoring team activity in real time with server-enforced role-based access control (RBAC).
 
 ---
 
