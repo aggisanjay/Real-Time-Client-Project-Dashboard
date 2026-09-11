@@ -17,7 +17,7 @@
 ```bash
 # 1. Setup Backend
 cd server
-cp .env.example .env    # Ensure DATABASE_URL points to your PostgreSQL instance
+cp .env.example .env    # Configure DATABASE_URL (e.g. Neon PostgreSQL), PORT=5000, JWT secrets
 npm install
 npx prisma db push      # Synchronize PostgreSQL schema
 npx tsx prisma/seed.ts  # Seed test users, projects, tasks, and activity logs
@@ -25,7 +25,7 @@ npm run dev             # Starts Express + Socket.io + Cron on http://localhost:
 
 # 2. Setup Frontend (in a separate terminal)
 cd ../client
-cp .env.example .env    # Verify VITE_API_URL and VITE_SOCKET_URL
+cp .env.example .env    # Contains VITE_API_URL=http://localhost:5000 and VITE_SOCKET_URL=http://localhost:5000
 npm install
 npm run dev             # Starts Vite dev server on http://localhost:5173
 ```
@@ -90,31 +90,93 @@ npm run dev             # Starts Vite dev server on http://localhost:5173
 
 ---
 
-## 4. Architectural Decisions & Justifications
+## 4. Key Features & Architectural Decisions
 
-### 1. Real-Time Layer: Socket.io vs SSE vs Long-Polling
-- **Decision:** Socket.io with a client singleton service (`services/socket.ts`) and feature-scoped listeners.
-- **Justification:** Socket.io provides bidirectional low-latency events with automatic transport failover (WebSocket to long-polling fallback), heartbeat-based connection monitoring, and native room multiplexing (`project:<id>`, `role:admin`, `user:<id>`).
-- **Catch-up Strategy:** Reconnection fires a role-scoped REST query (`GET /api/activity/feed?limit=20`) against the persistent PostgreSQL `TaskActivityLog` table. This guarantees zero lost events even across server restarts.
+### 1. Global Command Palette Search (`⌘K` / `Ctrl+K`)
+- **Modern Search Shell:** Pill design with clear button (`X`), OS-aware shortcut badge (`⌘K` or `Ctrl+K`), and smooth focus glowing states.
+- **RBAC-Enforced Backend Endpoint (`/api/search?q=...`):**
+  - **Developers:** Scoped exclusively to their assigned tasks and associated projects.
+  - **Project Managers:** Scoped to tasks in their projects, managed projects, and team members.
+  - **Admins:** Global search across all tasks, projects, and users.
+- **Instant Dropdown Palette:** Renders real-time results categorized into Tasks (with status pills), Projects, and Team members. Clicking any task opens its detail modal directly.
+- **In-Page Live Filter Sync:** Synchronizes with active Kanban boards and directory tables via `useOutletContext`.
 
-### 2. Background Job: node-cron vs BullMQ
-- **Decision:** `node-cron` with in-process evaluation.
-- **Justification:** Avoids requiring Redis infrastructure for an agency dashboard workload. A cron runs every 10 minutes scanning uncompleted tasks past `dueDate`, atomically marking `isOverdue = true`.
+### 2. Real-Time Layer: Socket.io
+- **Event Architecture:** Bidirectional low-latency events with automatic transport failover and room multiplexing (`project:<id>`, `role:admin`, `user:<id>`).
+- **Multi-Role Notification Broadcasting:** When a task is updated or moved on the board, the assigned Developer, project Manager, and all Admins receive immediate socket notifications.
+- **Catch-up Strategy:** Reconnection executes `GET /api/activity/feed?limit=20` querying the persistent `TaskActivityLog` table to guarantee zero lost events.
 
-### 3. Authentication & Token Storage
-- **Decision:** Short-lived JWT access tokens (~15 min) kept in-memory, paired with cryptographically hashed refresh tokens (~7 days) stored in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie.
-- **Justification:** Eliminates XSS token exfiltration risks inherent in `localStorage`. Rotation invalidates old tokens upon refresh.
-- **Permission Revocation:** When an Admin alters a user's role, the server broadcasts a `force_permission_refresh` event to `user:<id>` over Socket.io, forcing an immediate token refresh and layout sync.
+### 3. Notification Drawer & Dismissal Flow
+- **"Mark all read":** Updates read state without removing cards from view.
+- **Single-Card "X" Removal:** Individual notifications feature a dedicated `X` button on the right side of each card to permanently dismiss/remove items one by one.
+
+### 4. Background Scheduler
+- In-process `node-cron` running every 10 minutes scanning uncompleted tasks past `dueDate` and atomically flagging `isOverdue = true`.
+
+### 5. Authentication & Token Security
+- Short-lived JWT access tokens (~15 min) in memory + cryptographically hashed refresh tokens (~7 days) stored in `HttpOnly`, `SameSite=Strict` cookies.
+- Real-time permission revocation broadcasts `force_permission_refresh` over WebSockets when roles are updated.
+
+### 6. Default White (Light) Theme & Dark Mode
+- Defaults to a clean, high-contrast **White Mode** (`:root` tokens in `index.css`).
+- Full dark mode support toggleable via the header theme switch.
 
 ---
 
-## 5. Design System & Reference Adaptations
+## 5. Project Directory Structure
 
-Mirroring `Talent-Portal-production`:
-1. **Verbatim Theme Tokens:** Tailwind CSS v4 `@theme` with custom HSL variables and a custom `@custom-variant dark (&:is(.dark *));`.
-2. **Glassmorphic Navy Aesthetic:** Dark mode uses high-contrast navy/slate (`hsl(220 25% 8%)`), `.premium-card` gradient borders, and subtle blur headers.
-3. **Role-Split Layouts:** `AdminLayout.tsx`, `PMLayout.tsx`, `DeveloperLayout.tsx`, and `BottomNavigation.tsx` ensure navigation reflects the security perimeter.
-4. **Singleton Socket Service:** Connection lifecycle, ready queue (`onSocketReady`), feature-scoped attachments (`attachActivityFeedListeners`, `attachNotificationListeners`, `attachPresenceListeners`), and authentication failure backoff (`MAX_AUTH_FAILURES`).
+```
+Real-Time Client Project Dashboard/
+├── README.md                      # Complete setup, architecture, and schema documentation
+├── EXPLANATION.md                 # Technical architecture debrief
+├── server/
+│   ├── .env.example               # Backend configuration template
+│   ├── prisma/
+│   │   ├── schema.prisma          # PostgreSQL models & indexes
+│   │   └── seed.ts                # Realistic seed data
+│   ├── src/
+│   │   ├── config/                # env.ts, db.ts (Prisma client)
+│   │   ├── middleware/            # auth.ts, roleGuard.ts, validate.ts, errorHandler.ts
+│   │   ├── controllers/           # auth, client, project, task, activity, notification, user, search
+│   │   ├── services/              # tokenService, socketService, cronService
+│   │   ├── routes/                # auth, client, project, task, activity, notification, user, search
+│   │   └── index.ts               # Express + HTTP + Socket.io + Cron server
+│   └── tests/
+│       └── rbac.test.ts           # Integration tests proving cross-role access is blocked
+└── client/
+    ├── .env                       # Frontend environment variables
+    ├── .env.example               # Frontend environment template
+    ├── vercel.json                # Vercel deployment configuration
+    ├── index.html
+    └── src/
+        ├── index.css              # Tailwind v4 theme, HSL variables, dark mode
+        ├── App.tsx                # Role-scoped routes and guards
+        ├── types/index.ts         # Shared TypeScript interfaces
+        ├── services/
+        │   ├── api.ts             # Fetch client with auto refresh token queue
+        │   └── socket.ts          # Singleton Socket.io service with ready queue
+        ├── context/
+        │   ├── AuthContext.tsx    # Auth state, login/logout, session recovery
+        │   └── ThemeContext.tsx   # Theme state (defaults to light mode)
+        ├── layouts/
+        │   ├── AdminLayout.tsx    # Executive navigation with search outlet
+        │   ├── PMLayout.tsx       # Scoped to managed projects with search outlet
+        │   ├── DeveloperLayout.tsx# Scoped to assigned tasks with search outlet
+        │   └── BottomNavigation.tsx # Mobile bottom bar
+        ├── routes/
+        │   ├── ProtectedRoute.tsx # Redirects to /login
+        │   ├── RoleRoute.tsx      # Evaluates allowed roles
+        │   └── AccessDenied.tsx   # Access Denied screen
+        └── components/shared/
+            ├── TopNav.tsx         # Search bar, shortcuts, notifications, theme toggle
+            ├── ActiveUsersIndicator.tsx # Presence pill + online users popup
+            ├── NotificationBell.tsx     # Unread count badge + card removal ("X")
+            ├── KanbanBoard.tsx          # 4-column drag-and-drop board
+            ├── TaskCard.tsx             # Task card with overdue badge
+            ├── TaskDetailModal.tsx      # Details, status editor, activity logs
+            ├── ActivityFeedPanel.tsx    # Live relative timestamps stream
+            └── FilterBar.tsx            # URL-synced filters
+```
 
 ---
 
