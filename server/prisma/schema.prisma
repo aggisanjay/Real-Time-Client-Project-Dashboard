@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PROJECT_MANAGER
+  DEVELOPER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id           String            @id @default(uuid())
+  name         String
+  email        String            @unique
+  passwordHash String
+  role         Role              @default(DEVELOPER)
+  createdAt    DateTime          @default(now())
+
+  // Relationships
+  managedProjects Project[]      @relation("ProjectManager")
+  assignedTasks   Task[]         @relation("TaskAssignee")
+  activityLogs    TaskActivityLog[]
+  notifications   Notification[]
+  refreshTokens   RefreshToken[]
+
+  @@map("users")
+}
+
+model Client {
+  id          String    @id @default(uuid())
+  name        String
+  contactInfo String
+  createdAt   DateTime  @default(now())
+
+  // Relationships
+  projects    Project[]
+
+  @@map("clients")
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  clientId  String
+  managerId String
+  createdAt DateTime @default(now())
+
+  // Relationships
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  manager   User     @relation("ProjectManager", fields: [managerId], references: [id], onDelete: Restrict)
+  tasks     Task[]
+
+  // Indexes
+  @@index([managerId])
+  @@map("projects")
+}
+
+model Task {
+  id           String       @id @default(uuid())
+  projectId    String
+  title        String
+  description  String?
+  assignedToId String
+  status       TaskStatus   @default(TODO)
+  priority     TaskPriority @default(MEDIUM)
+  dueDate      DateTime
+  isOverdue    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relationships
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo   User              @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: Restrict)
+  activityLogs TaskActivityLog[]
+  notifications Notification[]
+
+  // Indexes
+  @@index([assignedToId])
+  @@index([projectId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model TaskActivityLog {
+  id         String     @id @default(uuid())
+  taskId     String
+  userId     String
+  fromStatus TaskStatus
+  toStatus   TaskStatus
+  timestamp  DateTime   @default(now())
+
+  // Relationships
+  task       Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Composite Index
+  @@index([taskId, timestamp])
+  @@map("task_activity_logs")
+}
+
+model Notification {
+  id            String    @id @default(uuid())
+  userId        String
+  type          String
+  message       String
+  isRead        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  relatedTaskId String?
+
+  // Relationships
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relatedTask   Task?     @relation(fields: [relatedTaskId], references: [id], onDelete: SetNull)
+
+  // Composite Index
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revoked    Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  // Relationships
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
