@@ -92,7 +92,7 @@ export const ActivityFeedPanel: React.FC<{ maxHeight?: string }> = ({
                   <div className="flex flex-wrap items-center gap-1.5 text-xs">
                     <span className="font-bold text-foreground">{item.userName}</span>
                     <span className="text-muted-foreground">moved</span>
-                    <span className="font-medium text-foreground underline decoration-primary/30 underline-offset-2">
+                    <span className="font-medium text-foreground">
                       {item.taskTitle}
                     </span>
                   </div>

@@ -173,7 +173,7 @@ export const AdminOverviewPage: React.FC = () => {
             </div>
             <Link
               to="/admin/projects"
-              className="text-xs font-semibold text-primary hover:underline"
+              className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               View All Projects
             </Link>

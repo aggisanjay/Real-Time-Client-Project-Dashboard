@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -29,70 +30,87 @@
 
 @layer base {
   :root {
-    --background: 240 20% 96%;
-    --foreground: 240 10% 3.9%;
+    /* Crisp clean aesthetic matching modern clinical & SaaS precision */
+    --background: 210 30% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 217 91% 45%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Vibrant Royal Blue from reference image (#1865F2) */
+    --primary: 221 91% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 10% 3.9%;
-    --muted: 240 4.8% 92%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 217 91% 45%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 221 91% 52%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 217 91% 55%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 91% 52%;
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 0 0% 98%;
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
 
-    --card: 220 20% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 220 20% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 221 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 10% 12%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 220 10% 15%;
-    --muted-foreground: 217 10% 65%;
+    --muted: 217 33% 16%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 221 91% 60%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 15%;
-    --input: 220 13% 15%;
-    --ring: 217 91% 60%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 221 91% 60%;
 
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
   }
 
-  /* Reference overrides the raw body background to an even deeper near-black */
   .dark body {
-    background-color: #08080a;
+    background-color: #070a12;
   }
 
   * {
     border-color: hsl(var(--border));
+    font-family: var(--font-sans);
+    text-decoration: none !important;
+  }
+
+  *, *::before, *::after {
+    text-decoration: none !important;
+  }
+
+  a, button, span, p, h1, h2, h3, h4, h5, h6 {
+    text-decoration: none !important;
+  }
+
+  a:hover, a:focus, a:active, button:hover {
+    text-decoration: none !important;
   }
 
   body {
@@ -101,6 +119,8 @@
     font-family: var(--font-sans);
     min-height: 100vh;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -132,16 +152,12 @@
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.premium-card:hover {
-  border-color: hsl(var(--border));
-}
-
 .glass-header {
   background-color: hsl(var(--background));
   border-bottom: 1px solid hsl(var(--border));
 }
 
 .dark .glass-header {
-  background-color: #08080a;
+  background-color: #070a12;
   border-bottom: 1px solid hsl(var(--border));
 }
