@@ -26,12 +26,7 @@ import {
   Moon,
   Zap,
   Code2,
-  Phone,
-  Mail,
-  MapPin,
   Check,
-  Globe,
-  Share2,
   Users
 } from 'lucide-react';
 
@@ -69,40 +64,6 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-white transition-colors duration-300 font-sans">
-      
-      {/* Top Utility Announcement Bar (Vibrant Blue matching reference) */}
-      <div className="w-full bg-[#1865F2] text-white text-[11px] font-medium py-2 px-4 sm:px-8 border-b border-blue-600/30">
-        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-3">
-          {/* Left Contact Details */}
-          <div className="flex flex-wrap items-center gap-6">
-            <span className="flex items-center gap-1.5 hover:opacity-90 transition-opacity">
-              <Phone className="h-3.5 w-3.5 opacity-90" />
-              <span>+1-202-555-0185</span>
-            </span>
-            <span className="flex items-center gap-1.5 hover:opacity-90 transition-opacity">
-              <Mail className="h-3.5 w-3.5 opacity-90" />
-              <span>support@agencyflow.com</span>
-            </span>
-            <span className="hidden md:flex items-center gap-1.5 opacity-90">
-              <MapPin className="h-3.5 w-3.5" />
-              <span>1234 Enterprise Blvd, Suite 400</span>
-            </span>
-          </div>
-
-          {/* Right Social Links & Presence */}
-          <div className="flex items-center gap-4">
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-semibold">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Socket.IO Connected
-            </span>
-            <div className="flex items-center gap-3 text-white/90">
-              <Globe className="h-3.5 w-3.5 hover:text-white cursor-pointer transition-colors" />
-              <Share2 className="h-3.5 w-3.5 hover:text-white cursor-pointer transition-colors" />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navbar */}
       <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-8">
