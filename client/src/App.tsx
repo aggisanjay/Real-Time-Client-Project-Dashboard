@@ -5,8 +5,9 @@ import { ThemeProvider } from './context/ThemeContext.js';
 import { ProtectedRoute } from './routes/ProtectedRoute.js';
 import { RoleRoute } from './routes/RoleRoute.js';
 
-// Auth Pages
+// Auth & Landing Pages
 import { LoginPage } from './pages/auth/LoginPage.js';
+import { LandingPage } from './pages/landing/LandingPage.js';
 
 // Layouts
 import { AdminLayout } from './layouts/AdminLayout.js';
@@ -30,28 +31,15 @@ import { PMActivityPage } from './pages/pm/PMActivityPage.js';
 import { DevTasksPage } from './pages/developer/DevTasksPage.js';
 import { DevActivityPage } from './pages/developer/DevActivityPage.js';
 
-const RoleRootRedirect: React.FC = () => {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) return null;
-  if (!user) return <Navigate to="/login" replace />;
-
-  if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
-  if (user.role === 'PROJECT_MANAGER') return <Navigate to="/pm" replace />;
-  return <Navigate to="/dev" replace />;
-};
-
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public Auth Route */}
+            {/* Public Landing & Auth Routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
-
-            {/* Role Root Redirect */}
-            <Route path="/" element={<RoleRootRedirect />} />
 
             {/* Protected Routes Pipeline */}
             <Route element={<ProtectedRoute />}>
